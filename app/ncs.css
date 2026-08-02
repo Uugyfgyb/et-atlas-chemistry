@@ -1,0 +1,29 @@
+.casePicker {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: -18px 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: #0a1714;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+.casePicker > span { font-size: 11px; color: var(--muted); letter-spacing: .08em; margin-right: 6px; }
+.casePicker button { border: 1px solid #2c4941; background: #101f1b; color: #a9beb7; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+.casePicker button.on { border-color: var(--mint); color: #071914; background: var(--mint); font-weight: 800; }
+.casePicker code { margin-left: auto; color: #90a69f; font-size: 12px; }
+.path.inner.ncs { width: 220px; left: -110px; background: linear-gradient(90deg,#6ec6ff,#4b5660,#f2cb62); height: 3px; }
+.modelFormula { position: absolute; left: 20px; top: 18px; z-index: 3; padding: 11px 14px; background: #07120fd9; border: 1px solid #29473e; border-radius: 6px; pointer-events: none; }
+.modelFormula b, .modelFormula span { display: block; }
+.modelFormula b { font-family: ui-monospace, monospace; color: #f1faf7; }
+.modelFormula span { font-size: 11px; color: var(--mint); margin-top: 4px; }
+.cards .ncsCase { grid-column: 1 / -1; background: linear-gradient(120deg,#17182c,#10271f); }
+.ncsCase p b { color: #c6bcff; }
+@media (max-width: 800px) {
+  .casePicker { margin-top: -5px; }
+  .casePicker code { width: 100%; margin-left: 0; line-height: 1.5; }
+  .cards .ncsCase { grid-column: auto; }
+  .modelFormula { right: 15px; left: 15px; }
+  .modelFormula b { font-size: 12px; }
+}
