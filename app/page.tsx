@@ -7,11 +7,11 @@ type InnerCase = "cl" | "ncs";
 type Atom = { x:number; y:number; z:number; c:string; r:number; label?:string };
 
 const outerSteps = [
-  ["分离的反应物","两个配合物各自保留完整第一配位层。"],
-  ["遭遇复合物","扩散使两者接近；没有共享桥联配体，也没有新的 M–L–M 键。"],
-  ["核重组","M–L 键长、配位层与溶剂极化调整到供体/受体能量匹配的构型。"],
-  ["电子隧穿","电子在近距离、近乎垂直的 Franck–Condon 跃迁中跨空间转移。"],
-  ["产物分离","氧化态互换，配体身份与归属保持不变，随后配合物扩散开。"],
+  ["分离的反应物","[Coᴵᴵᴵ(NH₃)₆]³⁺（低自旋 d⁶）与 [Crᴵᴵ(H₂O)₆]²⁺（d⁴）各自保留完整的八面体第一配位层。"],
+  ["遭遇复合物","扩散使两种阳离子在溶剂笼中短暂接近；它们不共享配体，也不形成 Co–L–Cr 键。"],
+  ["核与溶剂重组","Co–N、Cr–O 键长及溶剂极化预先调整到电子转移前后能量匹配的构型；此体系还受到较大的自旋/结构重组限制。"],
+  ["跨空间电子隧穿","电子从 Cr(II) → Co(III)，在近乎垂直的 Franck–Condon 跃迁中穿过两套配位层之间的空间；没有桥联通道。"],
+  ["产物分离","得到 [Coᴵᴵ(NH₃)₆]²⁺ 与 [Crᴵᴵᴵ(H₂O)₆]³⁺。NH₃ 仍属 Co，H₂O 仍属 Cr；后续 Co(II) 可能发生水解/配体取代，但不属于该 ET 基元步骤。"],
 ];
 const innerSteps = [
   ["反应物接近","至少一个配合物必须能进行配体取代；另一个携带可桥联配体。"],
@@ -32,15 +32,15 @@ function Complex3D({mode,step,labels,innerCase}:{mode:Mode;step:number;labels:bo
   const [rot,setRot]=useState({x:-12,y:18}); const [zoom,setZoom]=useState(1);
   const drag=useRef<{x:number;y:number;rx:number;ry:number}|null>(null);
   const atoms=useMemo(()=>{
-    const a:Atom[]=[]; const ligand=(cx:number, color:string, center:string)=>{
+    const a:Atom[]=[]; const ligand=(cx:number, color:string, center:string, ligandName:string)=>{
       a.push({x:cx,y:0,z:0,c:color,r:28,label:center});
-      [[0,-75,0],[0,75,0],[-56,-35,34],[-56,35,-34],[56,-35,-34],[56,35,34]].forEach((p,i)=>a.push({x:cx+p[0],y:p[1],z:p[2],c:"#9fb0c7",r:12,label:labels?(i===0?"L":""):undefined}));
+      [[0,-75,0],[0,75,0],[-56,-35,34],[-56,35,-34],[56,-35,-34],[56,35,34]].forEach((p,i)=>a.push({x:cx+p[0],y:p[1],z:p[2],c:"#9fb0c7",r:12,label:labels?(i===0?ligandName:""):undefined}));
     };
     const isNcs=mode==="inner"&&innerCase==="ncs";
     const gap=isNcs?(step===0?285:step<=2?220:step===3?235:300):(mode==="inner" && step>=1 && step<=3 ? 138 : step===0?250:190);
-    const changed=mode==="inner"&&step>=2;
-    ligand(-gap/2,mode==="outer"?"#7c8cff":"#b38cff",mode==="outer"?"Mᴬ":changed?"Coᴵᴵ":"Coᴵᴵᴵ");
-    ligand(gap/2,"#34d8bd",mode==="outer"?"Mᴮ":changed?"Crᴵᴵᴵ":"Crᴵᴵ");
+    const changed=(mode==="inner"&&step>=2)||(mode==="outer"&&step>=3);
+    ligand(-gap/2,mode==="outer"?"#7c8cff":"#b38cff",changed?"Coᴵᴵ":"Coᴵᴵᴵ","NH₃");
+    ligand(gap/2,"#34d8bd",changed?"Crᴵᴵᴵ":"Crᴵᴵ","H₂O");
     if(mode==="inner" && !isNcs && step>=1){a.push({x:0,y:0,z:0,c:"#f2cb62",r:15,label:"Cl⁻ 桥"});}
     if(isNcs){
       const ncs=step===0?[-gap/2+54,-gap/2+84,-gap/2+114]:step<=2?[-55,0,55]:[step===3?0:35,step===3?30:65,step===3?60:95];
@@ -52,7 +52,7 @@ function Complex3D({mode,step,labels,innerCase}:{mode:Mode;step:number;labels:bo
   return <div className="model" onPointerDown={e=>{drag.current={x:e.clientX,y:e.clientY,rx:rot.x,ry:rot.y};(e.currentTarget as HTMLElement).setPointerCapture(e.pointerId)}} onPointerMove={e=>{if(drag.current)setRot({x:drag.current.rx-(e.clientY-drag.current.y)*.35,y:drag.current.ry+(e.clientX-drag.current.x)*.35})}} onPointerUp={()=>drag.current=null} onWheel={e=>{e.preventDefault();setZoom(z=>Math.max(.65,Math.min(1.45,z-e.deltaY*.001)))}}>
     <div className="scene" style={{transform:tr}}>{atoms.map((a,i)=><div key={i} className="atom" style={{"--x":`${a.x}px`,"--y":`${a.y}px`,"--z":`${a.z}px`,"--s":`${a.r*2}px`,"--c":a.c} as React.CSSProperties}>{a.label&&<span>{a.label}</span>}</div>)}
       {step>=1&&<div className={`path ${mode} ${innerCase}`}>{mode==="outer"&&step===3?<b>e⁻ →</b>:mode==="inner"&&step===2?<b>e⁻ →</b>:null}</div>}
-    </div>{mode==="inner"&&innerCase==="ncs"&&<div className="modelFormula"><b>{step<2?"Coᴵᴵᴵ—N=C=S—Crᴵᴵ":"Coᴵᴵ ··· N=C=S—Crᴵᴵᴵ"}</b><span>{step===0?"N 端原属 Co；Cr 尚未接桥":step===1?"前驱复合物 precursor complex":step===2?"电子转移后的后继复合物":step===3?"Co–N 断裂，水分子回补":"NCS⁻ 已转移并以 S 端配位 Cr"}</span></div>}<div className="modelHint">拖动旋转 · 滚轮/触控板缩放</div>
+    </div>{mode==="outer"?<div className="modelFormula outerFormula"><b>{step<3?"[Coᴵᴵᴵ(NH₃)₆]³⁺ ··· [Crᴵᴵ(H₂O)₆]²⁺":"[Coᴵᴵ(NH₃)₆]²⁺ ··· [Crᴵᴵᴵ(H₂O)₆]³⁺"}</b><span>{step===0?"两套完整的第一配位层":step===1?"遭遇复合物：仅靠近，不搭桥":step===2?"键长与溶剂极化正在重组":step===3?"e⁻：Cr(II) → Co(III)，跨空间隧穿":"产物分离；NH₃/H₂O 归属不变"}</span></div>:innerCase==="ncs"&&<div className="modelFormula"><b>{step<2?"Coᴵᴵᴵ—N=C=S—Crᴵᴵ":"Coᴵᴵ ··· N=C=S—Crᴵᴵᴵ"}</b><span>{step===0?"N 端原属 Co；Cr 尚未接桥":step===1?"前驱复合物 precursor complex":step===2?"电子转移后的后继复合物":step===3?"Co–N 断裂，水分子回补":"NCS⁻ 已转移并以 S 端配位 Cr"}</span></div>}<div className="modelHint">拖动旋转 · 滚轮/触控板缩放</div>
   </div>
 }
 
@@ -61,9 +61,9 @@ function MechanismLab(){
  const steps=mode==="outer"?outerSteps:innerCase==="ncs"?ncsSteps:innerSteps;
  useEffect(()=>{if(!playing)return;const t=setInterval(()=>setStep(s=>s>=4?(setPlaying(false),4):s+1),1400/speed);return()=>clearInterval(t)},[playing,speed]);
  return <section id="lab" className="section lab"><div className="sectionHead"><div><span className="eyebrow">01 · 机制实验台</span><h2>把电子转移，放到眼前</h2></div><div className="seg"><button className={mode==="outer"?"on":""} onClick={()=>{setMode("outer");setStep(0);setPlaying(false)}}>外球</button><button className={mode==="inner"?"on":""} onClick={()=>{setMode("inner");setStep(0);setPlaying(false)}}>内球</button></div></div>
- {mode==="inner"&&<div className="casePicker"><span>选择 3D 案例</span><button className={innerCase==="cl"?"on":""} onClick={()=>{setInnerCase("cl");setStep(0);setPlaying(false)}}>Cl⁻ 单原子桥</button><button className={innerCase==="ncs"?"on":""} onClick={()=>{setInnerCase("ncs");setStep(0);setPlaying(false)}}>NCS⁻ 三原子桥 · 新</button><code>{innerCase==="ncs"?"[Coᴵᴵᴵ(NH₃)₅(NCS)]²⁺ + [Crᴵᴵ(H₂O)₆]²⁺":"[Coᴵᴵᴵ(NH₃)₅Cl]²⁺ + [Crᴵᴵ(H₂O)₆]²⁺"}</code></div>}
+ <div className="casePicker"><span>选择 3D 案例</span>{mode==="outer"?<><button className="on">Co(III)/Cr(II) 外球 · 新</button><code>[Coᴵᴵᴵ(NH₃)₆]³⁺ + [Crᴵᴵ(H₂O)₆]²⁺</code></>:<><button className={innerCase==="cl"?"on":""} onClick={()=>{setInnerCase("cl");setStep(0);setPlaying(false)}}>Cl⁻ 单原子桥</button><button className={innerCase==="ncs"?"on":""} onClick={()=>{setInnerCase("ncs");setStep(0);setPlaying(false)}}>NCS⁻ 三原子桥</button><code>{innerCase==="ncs"?"[Coᴵᴵᴵ(NH₃)₅(NCS)]²⁺ + [Crᴵᴵ(H₂O)₆]²⁺":"[Coᴵᴵᴵ(NH₃)₅Cl]²⁺ + [Crᴵᴵ(H₂O)₆]²⁺"}</code></>}</div>
  <div className="labGrid"><div><Complex3D mode={mode} step={step} labels={labels} innerCase={innerCase}/><div className="controls"><button onClick={()=>setPlaying(v=>!v)}>{playing?"Ⅱ 暂停":"▶ 播放"}</button><button onClick={()=>setStep(s=>Math.min(4,s+1))}>下一步 →</button><button onClick={()=>{setStep(0);setPlaying(false)}}>↺ 重置</button><label>速度 <input type="range" min=".5" max="2" step=".5" value={speed} onChange={e=>setSpeed(+e.target.value)}/>{speed}×</label><label><input type="checkbox" checked={labels} onChange={e=>setLabels(e.target.checked)}/> 标签</label></div></div>
- <div className="stepPanel"><div className="stepCount">0{step+1} / 05</div><h3>{steps[step][0]}</h3><p>{steps[step][1]}</p><div className="timeline">{steps.map((s,i)=><button key={i} className={i===step?"active":i<step?"done":""} onClick={()=>setStep(i)}><i>{i+1}</i><span>{s[0]}</span></button>)}</div><div className="truth"><b>{mode==="outer"?"外球的底线":innerCase==="ncs"?"这套例子的关键":"内球的指纹"}</b><span>{mode==="outer"?"电子越过空间；第一配位层不交换。":innerCase==="ncs"?"Cr(II) 先失水接到 S 端；ET 后 Co–N 断裂，NCS⁻ 转移给 Cr(III)。":"短暂 M–桥–M；常可检测到配体转移。"}</span></div></div></div></section>
+ <div className="stepPanel"><div className="stepCount">0{step+1} / 05</div><h3>{steps[step][0]}</h3><p>{steps[step][1]}</p><div className="timeline">{steps.map((s,i)=><button key={i} className={i===step?"active":i<step?"done":""} onClick={()=>setStep(i)}><i>{i+1}</i><span>{s[0]}</span></button>)}</div><div className="truth"><b>{mode==="outer"?"这套外球例子的判据":innerCase==="ncs"?"这套例子的关键":"内球的指纹"}</b><span>{mode==="outer"?"Cr(II) 失去一颗电子、Co(III) 得到一颗电子；六个 NH₃ 与六个 H₂O 均未跨金属交换。":innerCase==="ncs"?"Cr(II) 先失水接到 S 端；ET 后 Co–N 断裂，NCS⁻ 转移给 Cr(III)。":"短暂 M–桥–M；常可检测到配体转移。"}</span></div></div></div></section>
 }
 
 function Marcus(){const [lam,setLam]=useState(80),[dg,setDg]=useState(-35);const act=((lam+dg)**2)/(4*lam);const inv=-dg>lam;const k=Math.exp(-act/2.479);const W=560,H=260,pad=34; const xs=Array.from({length:101},(_,i)=>i/100);const y1=(x:number)=>165*(x-.27)**2+32;const shift=dg*.9;const y2=(x:number)=>165*(x-.73)**2+32+shift;const pts=(fn:(x:number)=>number)=>xs.map(x=>`${pad+x*(W-2*pad)},${Math.max(8,Math.min(H-25,fn(x)))}`).join(" ");return <section id="marcus" className="section marcus"><div className="sectionHead"><div><span className="eyebrow">02 · Marcus 控制台</span><h2>拖动参数，观察势垒如何改变</h2></div><p>经典非绝热外球电子转移的定性模型</p></div><div className="marcusGrid"><div className="chart"><svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Marcus 势能抛物线"><path d={`M${pad} 10V${H-24}H${W-10}`} className="axis"/><polyline points={pts(y1)} className="curve donor"/><polyline points={pts(y2)} className="curve acceptor"/><text x="85" y="34">反应物态</text><text x="425" y={Math.max(22,45+shift)}>产物态</text><text x="8" y="18">G</text><text x="470" y="253">核坐标 Q</text></svg><div className="chartLegend"><span><i className="violet"/>反应物</span><span><i className="mint"/>产物</span></div></div><div className="knobs"><label>重组能 λ <b>{lam} kJ·mol⁻¹</b><input type="range" min="20" max="160" value={lam} onChange={e=>setLam(+e.target.value)}/></label><label>标准自由能 ΔG° <b>{dg} kJ·mol⁻¹</b><input type="range" min="-180" max="100" value={dg} onChange={e=>setDg(+e.target.value)}/></label><div className="formula">ΔG‡ = (λ + ΔG°)² / 4λ</div><div className="readout"><div><small>活化自由能</small><strong>{act.toFixed(1)}</strong><em>kJ·mol⁻¹</em></div><div><small>相对速率趋势</small><strong>{k<.001?"≈ 0":k.toFixed(3)}</strong><em>任意单位</em></div></div><div className={`zone ${inv?"inverse":""}`}><b>{inv?"Marcus 倒转区":"Marcus 正常区"}</b><span>{inv?"−ΔG° > λ：继续增加驱动力，理论势垒反而升高。":"随反应变得更有利，势垒通常降低；在 −ΔG° = λ 时达无势垒点。"}</span></div></div></div><p className="fine">λ = 内球重组（M–L 键长/几何变化）+ 外球重组（溶剂极化重排）。速率还受电子耦合、温度与核频率影响；这里的“相对速率”仅展示势垒趋势。</p></section>}
